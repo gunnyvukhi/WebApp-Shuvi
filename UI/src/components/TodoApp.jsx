@@ -1,7 +1,13 @@
-import { Grid, GridItem, Heading } from "@chakra-ui/react"
-import TodoRightPart from "./components/TodoRightPart"
+import { Grid, GridItem, Heading } from "@chakra-ui/react";
+import PropTypes from 'prop-types';
+import { memo } from "react";
+import TodoRightPart from "./TodoRightPart";
+const TodoApp = ({removeToken}) => {
 
-const TodoApp = () => {
+  TodoApp.propTypes = {
+    removeToken: PropTypes.func.isRequired
+  };
+
   return (
     <Grid
       bg={'gray.100'}
@@ -28,10 +34,10 @@ const TodoApp = () => {
       </GridItem>
 
       <GridItem rowSpan={10} colSpan={3} bg='white' boxShadow={'rgba(50, 50, 93, 0.25) 0px 13px 27px -5px, rgba(0, 0, 0, 0.3) 0px 8px 16px -8px'}>
-        <TodoRightPart />
+        <TodoRightPart onLogout={removeToken}/>
       </GridItem>
     </Grid>
   )
 }
 
-export default TodoApp
+export default memo(TodoApp)

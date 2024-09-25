@@ -1,9 +1,10 @@
 import { Container, Image, Stack } from '@chakra-ui/react';
 import { motion } from "framer-motion";
+import PropTypes from 'prop-types';
 import { useState } from 'react';
-import Login from './components/Login';
-import LoginCover from './components/LoginCover';
-import Register from './components/Register';
+import Login from './Login';
+import LoginCover from './LoginCover';
+import Register from './Register';
 
 const MotionStack = motion(Stack);
 const variantsLogin = {
@@ -11,7 +12,12 @@ const variantsLogin = {
   register: {x: 520, borderRadius: '0 32px 32px 0'},
 };
 
-const LoginScreen = () => {
+const LoginScreen = ({setToken}) => {
+
+  LoginScreen.propTypes = {
+    setToken: PropTypes.func.isRequired
+  };
+
   const [ state, setState ] = useState(true)
 
   return (
@@ -30,7 +36,7 @@ const LoginScreen = () => {
               animate={state ? "login" : "register"}
               variants={variantsLogin}
             >
-              <Login state={state} />
+              <Login state={state} setToken={setToken}/>
               <Register state={!state} />
 
             </MotionStack>

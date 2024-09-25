@@ -1,4 +1,5 @@
 import { Button, Container, FormControl, FormErrorMessage, Heading, Input, InputGroup, InputLeftElement, InputRightElement } from '@chakra-ui/react';
+import axios from 'axios';
 import { Field, Form, Formik } from 'formik';
 import { motion } from "framer-motion";
 import PropTypes from 'prop-types';
@@ -13,10 +14,11 @@ const variants = {
   out: {opacity: 0, transition: {duration: 0.5}, display: 'none'},
 };
 
-const Login = ({state}) => {
+const Login = ({state, setToken}) => {
 
   Login.propTypes = {
-    state: PropTypes.bool.isRequired
+    state: PropTypes.bool.isRequired,
+    setToken: PropTypes.func.isRequired
   };
 
   function validateEmail(value) {
@@ -45,20 +47,21 @@ const Login = ({state}) => {
     <Formik
       initialValues={{email: '', password: ''}}
       onSubmit={(values, actions) => {
-        setTimeout( async () => {
-          try{
-            const response = await fetch('http://127.0.0.1:5000/login', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(values)
-            })
-            const data = await response.json()
-            console.log(data)
-          } catch (error) {
-            console.error('Error:', error)
-          }
+        setTimeout( () => {
+          axios({
+            method: "POST",
+            url:"http://127.0.0.1:5000/login",
+            data:values
+          })
+          .then((response) => {
+            setToken(response.data.access_token)
+          }).catch((error) => {
+            if (error.response) {
+              console.log(error.response)
+              console.log(error.response.status)
+              console.log(error.response.headers)
+              }
+          })
           actions.setSubmitting(false)
         }, 1000)
       }}

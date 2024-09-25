@@ -1,4 +1,6 @@
 import { Avatar, AvatarBadge, Button, HStack, Popover, PopoverArrow, PopoverBody, PopoverContent, PopoverFooter, PopoverHeader, PopoverTrigger, Portal, Stack, StackDivider, Text } from '@chakra-ui/react';
+import axios from 'axios';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { BsChatHeart } from "react-icons/bs";
 import { FaTabletScreenButton } from "react-icons/fa6";
@@ -6,8 +8,28 @@ import { IoIosArrowForward, IoMdHelpCircleOutline } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
 import { TbLogout } from "react-icons/tb";
 
+const AvatarDropdown = ({onLogout}) => {
 
-const AvatarDropdown = () => {
+        AvatarDropdown.propTypes = {
+            onLogout: PropTypes.func.isRequired
+        };
+        
+        function handleLogOut() {
+            const token = localStorage.getItem('shuvi_access_token')
+            axios({
+              method: "POST",
+              url:"http://127.0.0.1:5000/" + token.toString() + "/logout",
+            })
+            .then(() => {
+                onLogout()
+            }).catch((error) => {
+              if (error.response) {
+                console.log(error.response)
+                console.log(error.response.status)
+                console.log(error.response.headers)
+                }
+            })}
+
         const initRef = React.useRef()
         return (
           <Popover closeOnBlur={false} initialFocusRef={initRef}>
@@ -87,7 +109,7 @@ const AvatarDropdown = () => {
 
                         <Button
                         variant={'ghost'} width={'100%'} justifyContent={'space-between'} p={3} mt={1}
-                        fontSize={'medium'}
+                        fontSize={'medium'} onClick={handleLogOut}
                         ref={initRef}
                         >
                             <HStack ml={1}>

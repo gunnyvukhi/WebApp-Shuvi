@@ -2,20 +2,12 @@ from flask import request, jsonify, url_for, session, render_template, redirect
 from config import app
 from models import *
 from blueprints.reminder import reminder
-
+from flask_jwt_extended import create_access_token, unset_jwt_cookies, jwt_required
+from markupsafe import escape
 app.register_blueprint(reminder, prefix='/reminder')
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    if not session.get("loggedin"):
-        return redirect("/login")
-    return redirect("/get")
 
 @app.route('/login', methods =['POST'])
 def login():
-    if session.get("loggedin"):
-        return jsonify({"message": "You Have Already login"}), 200
-    
     data = request.json
     if all((x in data for x in ('email','password'))):
 
@@ -26,20 +18,25 @@ def login():
         current_user.load()
 
         if current_user.signed:
+            identity = str(email) + str(password)
+            access_token = create_access_token(identity=identity)
 
-            session["loggedin"] = True
-            session["user"] = current_user.user_info
+            session[access_token] = current_user.user_info
 
-            return jsonify({"message": "Login successfully"}), 200
-        return jsonify({"message": "User not found"}), 404
+            return jsonify({"access_token": access_token}), 200
+        return jsonify({"message": "User not found"}), 401
     else:
         return jsonify({"message": "Unknow action"}), 404
 
-@app.route("/user/get", methods=["GET"])
+@app.route("/get", methods=["GET"])
+@jwt_required()
 def get_user_data():
-    if not session.get("loggedin"):
+    token = str(request.headers.get("Authorization")).split(" ")[1]
+    print(token)
+    if not session.get(token):
         return jsonify({"message": "Plz login first"}), 404
-    return jsonify({"user_info": session["user"]}), 200
+    
+    return jsonify({"user_info": session[token]}), 200
 
 @app.route('/update', methods =["PATCH"])
 def update():
@@ -77,11 +74,12 @@ def register():
             session["user"] = new_user.user_info
         return jsonify({"message": msg}), status
 
-@app.route("/logout", methods =['POST'])
-def logout():
-    session.pop('loggedin', None)
-    session.pop('user', None)
-    return jsonify({"message": f"See you again"}), 200
+@app.route("/<token>/logout", methods =['POST'])
+def logout(token):
+    session.pop(escape(token), None)
+    response = jsonify({"message": "See you again"})
+    unset_jwt_cookies(response)
+    return response, 200
 
 if __name__ == '__main__':
     app.run()

@@ -1,11 +1,11 @@
 import { ChakraProvider } from '@chakra-ui/react';
 import * as ReactDOM from 'react-dom/client';
-import TodoApp from './TodoApp';
+import App from './App';
 // rafce
 
 const rootElement = document.getElementById('root')
 ReactDOM.createRoot(rootElement).render(
     <ChakraProvider>
-      <TodoApp />
+      <App />
     </ChakraProvider>
 )
