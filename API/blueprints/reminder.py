@@ -1,55 +1,47 @@
-from flask import Blueprint, request, jsonify, url_for, session, render_template
+from flask import Blueprint, request, jsonify, session
 from models import *
-
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 reminder = Blueprint('reminder', __name__, url_prefix="/reminder")
 @reminder.route('/')
 @reminder.route('/load', methods =['GET']) # load all event, deadline, ...
+@jwt_required()
 def get_all_reminder():
-    if not session.get("loggedin"):
-        return jsonify({"message": "Please login first"}), 404
-    
     # try to load event
-    current_event = Event(session["user"]["userId"])
+    
+    email, password, user_Id = get_jwt_identity()
+    current_event = Event(user_Id)
     msg, status = current_event.load()
 
     if status != 200:
         return jsonify({"message": msg}), status
-
-    session["event"] = current_event.data
     
     # try to load deadline
-    current_deadline = Deadline(session["user"]["userId"])
+    current_deadline = Deadline(user_Id)
     msg, status = current_deadline.load()
 
     if status != 200:
         return jsonify({"message": msg}), status
-    
-    session["deadline"] = current_deadline.data
 
     # try to load Activity data
-    current_activity = Activity(session["user"]["userId"])
+    current_activity = Activity(user_Id)
     msg, status = current_activity.load()
 
     if status != 200:
         return jsonify({"message": msg}), status
 
-    session["activity"] = current_activity.data
-
     # try to load Goal data
-    current_goal = Goal(session["user"]["userId"])
+    current_goal = Goal(user_Id)
     msg, status = current_goal.load()
 
     if status != 200:
         return jsonify({"message": msg}), status
 
-    session["goal"] = current_goal.data
-
     # dump all out
-    return jsonify({"event": session["event"],
-                    "deadline": session["deadline"],
-                    "activity": session["activity"],
-                    "goal": session["goal"]}), 200
+    return jsonify({"event": current_event.data,
+                    "deadline": current_deadline.data,
+                    "activity": current_activity.data,
+                    "goal": current_goal.data}), 200
     
 ################################################
 ############        Events       ###############

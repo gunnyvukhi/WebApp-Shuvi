@@ -1,9 +1,8 @@
-from flask import request, jsonify, url_for, session, render_template, redirect
+from flask import request, jsonify, url_for
 from config import app
 from models import *
 from blueprints.reminder import reminder
-from flask_jwt_extended import create_access_token, unset_jwt_cookies, jwt_required
-from markupsafe import escape
+from flask_jwt_extended import create_access_token, unset_jwt_cookies, jwt_required, get_jwt_identity
 app.register_blueprint(reminder, prefix='/reminder')
 
 @app.route('/login', methods =['POST'])
@@ -18,42 +17,93 @@ def login():
         current_user.load()
 
         if current_user.signed:
-            identity = str(email) + str(password)
-            access_token = create_access_token(identity=identity)
-
-            session[access_token] = current_user.user_info
-
+            access_token = create_access_token(identity=(email, password, current_user.user_info['userId']))
             return jsonify({"access_token": access_token}), 200
-        return jsonify({"message": "User not found"}), 401
+        
+        return jsonify({"msg": "User not found"}), 401
     else:
-        return jsonify({"message": "Unknow action"}), 404
+        return jsonify({"msg": "Unknow action"}), 404
 
 @app.route("/get", methods=["GET"])
 @jwt_required()
-def get_user_data():
-    token = str(request.headers.get("Authorization")).split(" ")[1]
-    print(token)
-    if not session.get(token):
-        return jsonify({"message": "Plz login first"}), 404
-    
-    return jsonify({"user_info": session[token]}), 200
+def get_data():
+    email, password, user_Id = get_jwt_identity()
+    current_user = user(email, password)
+    current_user.load()
 
-@app.route('/update', methods =["PATCH"])
+    if current_user.signed:
+        # try to load event
+        current_event = Event(user_Id)
+        msg, status = current_event.load()
+
+        if status == 200:
+            event_data = current_event.data
+        else:
+            event_data = msg
+
+        # try to load deadline
+        current_deadline = Deadline(user_Id)
+        msg, status = current_deadline.load()
+
+        if status == 200:
+            deadline_data = current_deadline.data
+        else:
+            deadline_data = msg
+
+        # try to load Activity data
+        current_activity = Activity(user_Id)
+        msg, status = current_activity.load()
+
+        if status == 200:
+            activity_data = current_activity.data
+        else:
+            activity_data = msg
+
+        # try to load Goal data
+        current_goal = Goal(user_Id)
+        msg, status = current_goal.load()
+
+        if status == 200:
+            goal_data = current_goal.data
+        else:
+            goal_data = msg
+
+        # dump all out
+        return jsonify({
+                    "user_info": current_user.user_info,
+                    "event": event_data,
+                    "deadline": deadline_data,
+                    "activity": activity_data,
+                    "goal": goal_data
+                    }), 200
+    
+    return jsonify({"msg": "User not found"}), 401
+
+@app.route("/user/get", methods=["GET"])
+@jwt_required()
+def get_user_data():
+    email, password, user_Id = get_jwt_identity()
+    current_user = user(email, password)
+    current_user.load()
+
+    if current_user.signed:
+        return jsonify({"user_info": current_user.user_info}), 200
+    return jsonify({"msg": "User not found"}), 401
+
+@app.route('/user/update', methods =["PATCH"])
+@jwt_required()
 def update():
-    if not session.get("loggedin"):
-        return jsonify({"message": "Plz login first"}), 404
     try:
         data = request.json
     except Exception as e:
-        return jsonify({"message": e.message}), 404
+        return jsonify({"msg": e.message}), 404
     
-    current_user = user(session['user']['email'], session['user']['password'])
+    email, password, user_Id = get_jwt_identity()
+    current_user = user(email, password)
+
     msg, status = current_user.update(**data)
 
-    if status == 200:
-        session["user"] = current_user.user_info
-
-    return jsonify({"message": msg}), status
+    return jsonify({"msg": msg}), status
 
 @app.route('/register', methods =['POST'])
 def register():
@@ -70,14 +120,14 @@ def register():
         new_user = user()
         msg, status = new_user.register(email=email, password=password, name=name, mobile=mobile, regionId=regionId, birth=birth, gender=gender)
         if status == 200:
-            session["loggedin"] = True
-            session["user"] = new_user.user_info
-        return jsonify({"message": msg}), status
+            access_token = create_access_token(identity=(email, password, new_user.user_info['userId']))
+            return jsonify({"access_token": access_token}), 200
+        return jsonify({"msg": msg}), status
 
-@app.route("/<token>/logout", methods =['POST'])
-def logout(token):
-    session.pop(escape(token), None)
-    response = jsonify({"message": "See you again"})
+@app.route("/user/logout", methods =['POST'])
+@jwt_required()
+def logout():
+    response = jsonify({"msg": "See you again"})
     unset_jwt_cookies(response)
     return response, 200
 

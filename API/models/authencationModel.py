@@ -15,6 +15,9 @@ class user:
                 self.signed = True
                 self.id = self.user_info["userId"]
                 self.name = str(self.user_info["firstName"] + " " + self.user_info["lastName"]).capitalize()
+                
+                self.password = self.user_info["password"]
+                del self.user_info["password"]
             else:
                 self.signed = False
         except Exception as e:
@@ -34,7 +37,7 @@ class user:
         firstName = check_update(firstName, data['firstName']).lower()
         lastName = check_update(lastName, data['lastName']).lower()
 
-        password = check_update(password, data['password'])
+        password = check_update(password, self.password)
         if len(password) < 6:
             return 'Password must be at least 6 characters', 400
 

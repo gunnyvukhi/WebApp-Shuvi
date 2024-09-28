@@ -15,6 +15,7 @@ import {
   RadioGroup,
   Select
 } from '@chakra-ui/react';
+import axios from 'axios';
 import { Field, Form, Formik } from 'formik';
 import { motion } from "framer-motion";
 import PropTypes from 'prop-types';
@@ -33,10 +34,11 @@ const city = [[],
               [{name:'San Francisco', value: 10}, {name:'washington', value: 11}, {name:'Texas', value: 12}]]
 
 
-function Register({state}) {
+function Register({state, setToken}) {
 
   Register.propTypes = {
-    state: PropTypes.bool.isRequired
+    state: PropTypes.bool.isRequired,
+    setToken: PropTypes.func.isRequired
   };
 
   function validateRequired(value) {
@@ -117,23 +119,24 @@ function Register({state}) {
   <MotionContainer position={'absolute'} animate={state ? "in" : "out"} variants={variants} display={'none'}>
     <Container>
     <Formik
-      initialValues={{ name: '' , email: '', birth:'', regionId: '', mobile: '', gender: 'Nam', password: '', passwordConfirm: ''}}
+      initialValues={{ name: '' , email: '', birth:'', regionId: '', mobile: '', gender: '1', password: '', passwordConfirm: ''}}
       onSubmit={(values, actions) => {
-        setTimeout(async () => {
-          try {
-          const response = await fetch('http://127.0.0.1:5000/register', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(values)
+        setTimeout( () => {
+          axios({
+            method: "POST",
+            url:"http://127.0.0.1:5000/register", 
+            data: values
           })
-          const data = await response.json()
-          console.log(data)
-        } catch (error) {
-          console.error('Error:', error)
-        }
-        actions.setSubmitting(false)
+          .then((response) => {
+            setToken(response.data.access_token)
+          }).catch((error) => {
+            if (error.response) {
+              console.log(error.response)
+              console.log(error.response.status)
+              console.log(error.response.headers)
+              }
+          })
+          actions.setSubmitting(false)
         }, 1000)
       }}
     >

@@ -19,7 +19,7 @@ const Login = ({state, setToken}) => {
   Login.propTypes = {
     state: PropTypes.bool.isRequired,
     setToken: PropTypes.func.isRequired
-  };
+    };
 
   function validateEmail(value) {
     let error
@@ -51,7 +51,7 @@ const Login = ({state, setToken}) => {
           axios({
             method: "POST",
             url:"http://127.0.0.1:5000/login",
-            data:values
+            data: values
           })
           .then((response) => {
             setToken(response.data.access_token)
@@ -98,7 +98,7 @@ const Login = ({state, setToken}) => {
                     variant='flushed'
                     boxShadow={"0px 0px 0px 0px !important"}
                     placeholder='Passwords'
-                  
+                    
                   />
                   <InputRightElement width='4.5rem'>
                     <Button h='1.75rem' size='sm' onClick={() => setShowPassword(!showPassword)}>

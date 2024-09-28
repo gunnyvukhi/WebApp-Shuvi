@@ -8,17 +8,21 @@ import { IoIosArrowForward, IoMdHelpCircleOutline } from "react-icons/io";
 import { IoSettingsOutline } from "react-icons/io5";
 import { TbLogout } from "react-icons/tb";
 
-const AvatarDropdown = ({onLogout}) => {
+const AvatarDropdown = ({onLogout, token, userInfo}) => {
 
         AvatarDropdown.propTypes = {
-            onLogout: PropTypes.func.isRequired
+            onLogout: PropTypes.func.isRequired,
+            token: PropTypes.string,
+            userInfo: PropTypes.object.isRequired
         };
         
         function handleLogOut() {
-            const token = localStorage.getItem('shuvi_access_token')
             axios({
               method: "POST",
-              url:"http://127.0.0.1:5000/" + token.toString() + "/logout",
+              url:"http://127.0.0.1:5000/user/logout",
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
             })
             .then(() => {
                 onLogout()
@@ -36,7 +40,7 @@ const AvatarDropdown = ({onLogout}) => {
             {({ isOpen }) => (
               <>
                 <PopoverTrigger>
-                    <Avatar name="Dan Abrahmov" src="https://bit.ly/dan-abramov" cursor={'pointer'}>
+                    <Avatar name={userInfo.name} src="https://bit.ly/dan-abramov" cursor={'pointer'}>
                         {isOpen || <AvatarBadge boxSize="1em" bg="green.500" />}
                     </Avatar>
                 </PopoverTrigger>
