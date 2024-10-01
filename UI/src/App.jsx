@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import useToken from './components/useToken';
+import Home from './pages/Home';
 import LoginScreen from './pages/LoginScreen';
-import TodoApp from './pages/TodoApp';
 
 const App = () => {
 
@@ -15,7 +15,7 @@ const App = () => {
         :(
           <>
             <Routes>
-              <Route exact path="/" element={<TodoApp token={token} removeToken={removeToken}/>}></Route>
+              <Route exact path="/" element={<Home token={token} removeToken={removeToken}/>}></Route>
             </Routes>
           </>
         )}

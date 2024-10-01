@@ -12,9 +12,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chakra-ui/icons": "^2.1.1",
     "@chakra-ui/react": "^2.8.2",
     "@emotion/react": "^11.13.3",
     "@emotion/styled": "^11.13.0",
+    "@fontsource-variable/dancing-script": "^5.1.0",
     "axios": "^1.7.7",
     "formik": "^2.4.6",
     "framer-motion": "^11.3.31",
